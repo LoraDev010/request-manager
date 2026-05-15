@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchRequests, createRequest, updateRequestStatus } from '../services/api'
-import { Status } from '../types'
+import type { Status } from '../types'
 
 const QUERY_KEY = ['requests']
 

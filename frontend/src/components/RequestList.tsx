@@ -9,11 +9,21 @@ export function RequestList() {
   }
 
   if (isError) {
-    return <p className="state-message state-error">Error al cargar solicitudes. Verifica que el servidor esté activo.</p>
+    return (
+      <p className="state-message state-error">
+        <strong>Error de conexión</strong>
+        Verifica que el servidor esté activo en el puerto 3000.
+      </p>
+    )
   }
 
   if (!requests || requests.length === 0) {
-    return <p className="state-message">No hay solicitudes aún. Crea la primera.</p>
+    return (
+      <p className="state-message">
+        <strong>Sin solicitudes aún</strong>
+        Crea la primera solicitud usando el formulario.
+      </p>
+    )
   }
 
   return (

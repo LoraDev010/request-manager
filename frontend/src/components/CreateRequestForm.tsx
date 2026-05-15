@@ -1,4 +1,5 @@
-import { useState, FormEvent } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { useCreateRequest } from '../hooks/useRequests'
 
 export function CreateRequestForm() {
@@ -20,21 +21,28 @@ export function CreateRequestForm() {
 
   return (
     <form className="form" onSubmit={handleSubmit}>
-      <h2 className="form-title">Nueva Solicitud</h2>
-      <div className="form-group">
-        <input
-          type="text"
-          className={`form-input ${error ? 'form-input-error' : ''}`}
-          placeholder="Título de la solicitud"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          disabled={isPending}
-        />
-        {error && <span className="form-error">{error}</span>}
+      <div className="form-header">
+        <div className="form-header-icon">＋</div>
+        <h2 className="form-title">NUEVA SOLICITUD</h2>
       </div>
-      <button className="btn btn-primary" type="submit" disabled={isPending}>
-        {isPending ? 'Creando...' : 'Crear solicitud'}
-      </button>
+      <div className="form-body">
+        <div className="form-group">
+          <label className="form-label" htmlFor="title">Título</label>
+          <input
+            id="title"
+            type="text"
+            className={`form-input ${error ? 'form-input-error' : ''}`}
+            placeholder="Describe la solicitud..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            disabled={isPending}
+          />
+          {error && <span className="form-error">⚠ {error}</span>}
+        </div>
+        <button className="btn btn-primary" type="submit" disabled={isPending}>
+          {isPending ? '⏳ Creando...' : 'Crear solicitud'}
+        </button>
+      </div>
     </form>
   )
 }

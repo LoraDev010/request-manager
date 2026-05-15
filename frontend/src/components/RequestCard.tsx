@@ -1,16 +1,22 @@
-import { Request, Status } from '../types'
+import type { Request, Status } from '../types'
 import { useUpdateRequest } from '../hooks/useRequests'
 
 const statusStyles: Record<Status, string> = {
-  PENDING: 'badge badge-pending',
+  PENDING:  'badge badge-pending',
   APPROVED: 'badge badge-approved',
   REJECTED: 'badge badge-rejected',
 }
 
 const statusLabel: Record<Status, string> = {
-  PENDING: 'Pendiente',
+  PENDING:  'Pendiente',
   APPROVED: 'Aprobada',
   REJECTED: 'Rechazada',
+}
+
+const cardModifier: Record<Status, string> = {
+  PENDING:  'card card--pending',
+  APPROVED: 'card card--approved',
+  REJECTED: 'card card--rejected',
 }
 
 interface Props {
@@ -26,7 +32,7 @@ export function RequestCard({ request }: Props) {
   }
 
   return (
-    <div className="card">
+    <div className={cardModifier[request.status]}>
       <div className="card-header">
         <h3 className="card-title">{request.title}</h3>
         <span className={statusStyles[request.status]}>{statusLabel[request.status]}</span>
@@ -39,14 +45,14 @@ export function RequestCard({ request }: Props) {
             onClick={() => handleAction('APPROVED')}
             disabled={isPending}
           >
-            {isPending ? 'Procesando...' : 'Aprobar'}
+            {isPending ? '⏳' : '✓'} Aprobar
           </button>
           <button
             className="btn btn-reject"
             onClick={() => handleAction('REJECTED')}
             disabled={isPending}
           >
-            {isPending ? 'Procesando...' : 'Rechazar'}
+            ✕ Rechazar
           </button>
         </div>
       )}
