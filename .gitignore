@@ -7,6 +7,11 @@ build/
 # Study file - not for submission
 estudio.md
 
+# Claude Code internals
+skills-lock.json
+frontend/skills-lock.json
+frontend/.agents/
+
 # OS
 .DS_Store
 Thumbs.db
