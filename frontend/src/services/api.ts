@@ -12,10 +12,12 @@ export async function fetchRequests(): Promise<Request[]> {
 
 export async function createRequest(title: string): Promise<Request> {
   const { data } = await http.post<ApiResponse<Request>>('/requests', { title })
-  return data.data!
+  if (!data.data) throw new Error(data.error?.message ?? 'Unexpected empty response')
+  return data.data
 }
 
 export async function updateRequestStatus(id: string, status: Status): Promise<Request> {
   const { data } = await http.patch<ApiResponse<Request>>(`/requests/${id}`, { status })
-  return data.data!
+  if (!data.data) throw new Error(data.error?.message ?? 'Unexpected empty response')
+  return data.data
 }

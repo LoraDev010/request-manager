@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RequestCard } from '../src/components/RequestCard'
-import { Request } from '../src/types'
+import type { Request } from '../src/types'
 
 vi.mock('../src/services/api', () => ({
   updateRequestStatus: vi.fn(),
