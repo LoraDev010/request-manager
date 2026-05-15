@@ -6,10 +6,14 @@ import { Request as AppRequest, Status } from '../types'
 export class RequestController {
   constructor(private readonly service: RequestService) {}
 
-  getAll = (_req: Request, res: Response): void => {
-    const data = this.service.getAll()
-    const body: ApiResponse<AppRequest[]> = { data, error: null }
-    res.status(200).json(body)
+  getAll = (_req: Request, res: Response, next: NextFunction): void => {
+    try {
+      const data = this.service.getAll()
+      const body: ApiResponse<AppRequest[]> = { data, error: null }
+      res.status(200).json(body)
+    } catch (err) {
+      next(err)
+    }
   }
 
   create = (req: Request, res: Response, next: NextFunction): void => {

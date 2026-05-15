@@ -21,9 +21,7 @@ export class RequestService {
     }
 
     if (request.status !== 'PENDING') {
-      throw new ConflictError(
-        `Cannot modify request '${id}'. Current status: ${request.status}`
-      )
+      throw new ConflictError('Request has already been processed')
     }
 
     return this.repository.updateStatus(id, status)

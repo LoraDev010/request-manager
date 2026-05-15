@@ -25,8 +25,9 @@ export class InMemoryRequestRepository implements IRequestRepository {
   }
 
   updateStatus(id: string, status: Status): Request {
-    const request = this.requests.get(id)!
-    const updated: Request = { ...request, status }
+    // service always verifies existence via findById before calling this
+    const existing = this.requests.get(id) as Request
+    const updated: Request = { ...existing, status }
     this.requests.set(id, updated)
     return updated
   }

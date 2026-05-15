@@ -3,21 +3,29 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import { rateLimit } from 'express-rate-limit'
-import requestRoutes from './routes/requestRoutes'
+import { createRequestRouter } from './routes/requestRoutes'
 import { errorHandler } from './middleware/errorHandler'
+import { InMemoryRequestRepository } from './repositories/InMemoryRequestRepository'
+import { RequestService } from './services/requestService'
+import { RequestController } from './controllers/requestController'
+
+const repository = new InMemoryRequestRepository()
+const service = new RequestService(repository)
+const controller = new RequestController(service)
 
 const app = express()
 
 app.use(helmet())
-app.use(rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: true, legacyHeaders: false }))
 app.use(cors({
   origin: process.env.ALLOWED_ORIGIN ?? 'http://localhost:5173',
   methods: ['GET', 'POST', 'PATCH'],
   allowedHeaders: ['Content-Type'],
+  credentials: false,
 }))
+app.use(rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: true, legacyHeaders: false }))
 app.use(express.json({ limit: '10kb' }))
 
-app.use('/requests', requestRoutes)
+app.use('/requests', createRequestRouter(controller))
 
 app.use(errorHandler)
 
