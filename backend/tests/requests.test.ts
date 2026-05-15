@@ -8,6 +8,12 @@ describe('POST /requests', () => {
     expect(res.body.error.code).toBe('VALIDATION_ERROR')
   })
 
+  it('returns 400 when title is empty string', async () => {
+    const res = await request(app).post('/requests').send({ title: '' })
+    expect(res.status).toBe(400)
+    expect(res.body.error.code).toBe('VALIDATION_ERROR')
+  })
+
   it('returns 201 with PENDING status on valid request', async () => {
     const res = await request(app).post('/requests').send({ title: 'New request' })
     expect(res.status).toBe(201)
@@ -24,6 +30,7 @@ describe('GET /requests', () => {
     expect(Array.isArray(res.body.data)).toBe(true)
     expect(res.body.error).toBeNull()
   })
+
 })
 
 describe('PATCH /requests/:id', () => {
@@ -40,6 +47,12 @@ describe('PATCH /requests/:id', () => {
     expect(res.body.data.status).toBe('APPROVED')
   })
 
+  it('returns 200 when rejecting a PENDING request', async () => {
+    const res = await request(app).patch(`/requests/${requestId}`).send({ status: 'REJECTED' })
+    expect(res.status).toBe(200)
+    expect(res.body.data.status).toBe('REJECTED')
+  })
+
   it('returns 409 when approving an already APPROVED request', async () => {
     await request(app).patch(`/requests/${requestId}`).send({ status: 'APPROVED' })
     const res = await request(app).patch(`/requests/${requestId}`).send({ status: 'APPROVED' })
@@ -54,8 +67,14 @@ describe('PATCH /requests/:id', () => {
     expect(res.body.error.code).toBe('REQUEST_ALREADY_PROCESSED')
   })
 
-  it('returns 404 when request does not exist', async () => {
+  it('returns 400 when id is not a valid UUID', async () => {
     const res = await request(app).patch('/requests/non-existent-id').send({ status: 'APPROVED' })
+    expect(res.status).toBe(400)
+    expect(res.body.error.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('returns 404 when request does not exist', async () => {
+    const res = await request(app).patch('/requests/00000000-0000-0000-0000-000000000000').send({ status: 'APPROVED' })
     expect(res.status).toBe(404)
     expect(res.body.error.code).toBe('REQUEST_NOT_FOUND')
   })
