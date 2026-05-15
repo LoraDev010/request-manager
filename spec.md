@@ -1,25 +1,119 @@
 # Especificación – Gestor de Solicitudes
 
-## Reglas de Negocio
+## Propósito
 
-1. Toda solicitud se crea con estado `PENDING`.
-2. Solo las solicitudes en estado `PENDING` pueden ser aprobadas o rechazadas.
-3. Intentar modificar una solicitud `APPROVED` o `REJECTED` retorna `409 Conflict`.
-4. El campo `title` es obligatorio y no puede estar vacío.
-5. `PATCH /requests/:id` acepta únicamente `{ "status": "APPROVED" | "REJECTED" }`.
+Sistema para registrar y procesar solicitudes de aprobación. Permite crear solicitudes, listarlas y aprobarlas o rechazarlas con un flujo de estado controlado.
+
+---
+
+## Modelo de Datos
+
+### Request
+
+| Campo | Tipo | Restricciones |
+|---|---|---|
+| `id` | string (UUID v4) | generado por el servidor, inmutable |
+| `title` | string | requerido, no vacío, máximo 500 caracteres |
+| `status` | `PENDING` \| `APPROVED` \| `REJECTED` | inicia siempre en `PENDING` |
+| `createdAt` | string (ISO 8601) | generado por el servidor, inmutable |
+
+---
+
+## Requisitos
+
+### Requisito: Creación de solicitudes
+
+El sistema DEBE crear solicitudes con estado `PENDING` y un `title` válido.
+
+#### Escenario: title válido
+
+- GIVEN un body con `title` no vacío
+- WHEN `POST /requests`
+- THEN responde 201 con `status: "PENDING"` y envelope `{ data, error: null }`
+
+#### Escenario: title ausente
+
+- GIVEN un body sin campo `title`
+- WHEN `POST /requests`
+- THEN responde 400 con `code: "VALIDATION_ERROR"` y `message: "title is required"`
+
+#### Escenario: title vacío
+
+- GIVEN un body con `title: ""`
+- WHEN `POST /requests`
+- THEN responde 400 con `code: "VALIDATION_ERROR"` y `message: "title cannot be empty"`
+
+---
+
+### Requisito: Listado de solicitudes
+
+El sistema DEBE retornar todas las solicitudes existentes.
+
+#### Escenario: repositorio con solicitudes
+
+- GIVEN N solicitudes creadas
+- WHEN `GET /requests`
+- THEN responde 200 con array de N items en `data`
+
+#### Escenario: repositorio vacío
+
+- GIVEN ninguna solicitud creada
+- WHEN `GET /requests`
+- THEN responde 200 con `data: []`
+
+---
+
+### Requisito: Procesamiento de solicitudes
+
+El sistema DEBE permitir aprobar o rechazar únicamente solicitudes en estado `PENDING`.
+
+#### Escenario: aprobar solicitud PENDING
+
+- GIVEN una solicitud con `status: "PENDING"`
+- WHEN `PATCH /requests/:id` con `{ "status": "APPROVED" }`
+- THEN responde 200 con `status: "APPROVED"` en `data`
+
+#### Escenario: rechazar solicitud PENDING
+
+- GIVEN una solicitud con `status: "PENDING"`
+- WHEN `PATCH /requests/:id` con `{ "status": "REJECTED" }`
+- THEN responde 200 con `status: "REJECTED"` en `data`
+
+#### Escenario: solicitud ya procesada
+
+- GIVEN una solicitud con `status: "APPROVED"` o `"REJECTED"`
+- WHEN `PATCH /requests/:id` con cualquier status válido
+- THEN responde 409 con `code: "REQUEST_ALREADY_PROCESSED"`
+
+#### Escenario: solicitud inexistente
+
+- GIVEN un `id` que no existe en el repositorio
+- WHEN `PATCH /requests/:id`
+- THEN responde 404 con `code: "REQUEST_NOT_FOUND"`
+
+#### Escenario: status inválido
+
+- GIVEN un body con `status` fuera de `"APPROVED"` o `"REJECTED"`
+- WHEN `PATCH /requests/:id`
+- THEN responde 400 con `code: "VALIDATION_ERROR"`
+
+---
 
 ## Contrato de API
 
-### POST /requests
-
-Crea una nueva solicitud.
-
-**Cuerpo de la petición:**
+Todas las respuestas siguen el envelope:
 ```json
-{ "title": "string (requerido)" }
+{ "data": <T> | null, "error": { "code": "...", "message": "..." } | null }
 ```
 
-**Respuesta 201:**
+### POST /requests
+
+**Cuerpo:**
+```json
+{ "title": "string (requerido, max 500 chars)" }
+```
+
+**201 – creada:**
 ```json
 {
   "data": { "id": "uuid", "title": "string", "status": "PENDING", "createdAt": "ISO8601" },
@@ -27,7 +121,7 @@ Crea una nueva solicitud.
 }
 ```
 
-**Respuesta 400 – title faltante:**
+**400 – validación:**
 ```json
 { "data": null, "error": { "code": "VALIDATION_ERROR", "message": "title is required" } }
 ```
@@ -36,9 +130,7 @@ Crea una nueva solicitud.
 
 ### GET /requests
 
-Retorna todas las solicitudes.
-
-**Respuesta 200:**
+**200:**
 ```json
 {
   "data": [{ "id": "uuid", "title": "string", "status": "PENDING|APPROVED|REJECTED", "createdAt": "ISO8601" }],
@@ -50,14 +142,12 @@ Retorna todas las solicitudes.
 
 ### PATCH /requests/:id
 
-Aprueba o rechaza una solicitud.
-
-**Cuerpo de la petición:**
+**Cuerpo:**
 ```json
 { "status": "APPROVED" | "REJECTED" }
 ```
 
-**Respuesta 200:**
+**200:**
 ```json
 {
   "data": { "id": "uuid", "title": "string", "status": "APPROVED", "createdAt": "ISO8601" },
@@ -65,12 +155,17 @@ Aprueba o rechaza una solicitud.
 }
 ```
 
-**Respuesta 404 – no encontrada:**
+**400 – status inválido:**
+```json
+{ "data": null, "error": { "code": "VALIDATION_ERROR", "message": "status must be APPROVED or REJECTED" } }
+```
+
+**404 – no encontrada:**
 ```json
 { "data": null, "error": { "code": "REQUEST_NOT_FOUND", "message": "..." } }
 ```
 
-**Respuesta 409 – ya procesada:**
+**409 – ya procesada:**
 ```json
 { "data": null, "error": { "code": "REQUEST_ALREADY_PROCESSED", "message": "..." } }
 ```
@@ -86,6 +181,8 @@ Aprueba o rechaza una solicitud.
 | `REQUEST_ALREADY_PROCESSED` | 409 | La solicitud no está en estado PENDING |
 | `INTERNAL_ERROR` | 500 | Error inesperado del servidor |
 
+---
+
 ## Decisiones Técnicas
 
 ### Backend
@@ -100,6 +197,8 @@ Aprueba o rechaza una solicitud.
 - **React + Vite + TypeScript** – setup rápido, tipado completo
 - **TanStack Query** – maneja server state (caché, carga, refetch) separado del UI state; elimina el patrón manual `useEffect` + `useState` para fetching
 - **Axios** – cliente HTTP con configuración centralizada de base URL
+
+---
 
 ## Supuestos
 
