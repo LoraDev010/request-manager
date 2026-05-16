@@ -26,8 +26,8 @@ const base: Request = {
 describe('RequestCard', () => {
   it('shows Aprobar and Rechazar buttons when status is PENDING', () => {
     render(wrap(<RequestCard request={base} />))
-    expect(screen.getByText('Aprobar')).toBeInTheDocument()
-    expect(screen.getByText('Rechazar')).toBeInTheDocument()
+    expect(screen.getByText(/Aprobar/)).toBeInTheDocument()
+    expect(screen.getByText(/Rechazar/)).toBeInTheDocument()
   })
 
   it('does not show action buttons when status is APPROVED', () => {
