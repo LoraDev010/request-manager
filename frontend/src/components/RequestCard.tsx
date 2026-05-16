@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Request, Status } from '../types'
 import { useUpdateRequest } from '../hooks/useRequests'
 
@@ -25,10 +26,14 @@ interface Props {
 
 export function RequestCard({ request }: Props) {
   const { mutate, isPending } = useUpdateRequest()
+  const [actionError, setActionError] = useState('')
   const isPendingStatus = request.status === 'PENDING'
 
   const handleAction = (status: Status) => {
-    mutate({ id: request.id, status })
+    setActionError('')
+    mutate({ id: request.id, status }, {
+      onError: (err) => setActionError(err.message),
+    })
   }
 
   return (
@@ -54,6 +59,7 @@ export function RequestCard({ request }: Props) {
           >
             ✕ Rechazar
           </button>
+          {actionError && <span className="form-error">⚠ {actionError}</span>}
         </div>
       )}
     </div>

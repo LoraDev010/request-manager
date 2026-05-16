@@ -16,6 +16,7 @@ export function CreateRequestForm() {
     setError('')
     mutate(title.trim(), {
       onSuccess: () => setTitle(''),
+      onError: (err) => setError(err.message),
     })
   }
 
