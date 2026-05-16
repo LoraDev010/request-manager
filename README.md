@@ -87,7 +87,7 @@ curl -X PATCH http://localhost:3000/requests/<id> \
 ## Ejecutar Tests
 
 ```bash
-# Backend (8 tests de integración)
+# Backend (11 tests de integración)
 cd backend && npm test
 
 # Frontend (4 tests de componentes)
